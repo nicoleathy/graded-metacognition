@@ -165,17 +165,6 @@ python scripts/evaluate_transfer.py \
     --datasets trivia_qa gsm8k mmlu --meta-types binary graded fok
 ```
 
-## Citation
-
-## ```bibtex
-## @article{your_citation_2026,
-##  title={How Confident, Not Just Whether: Graded Metacognitive Training for Language Models},
-##  author={Your Name},
-##  journal={arXiv preprint},
-##  year={2026}
-## }
-## ```
-
 ## Acknowledgments
 
 This work builds on [ESMA](https://arxiv.org/abs/2602.02605) by Park et al. (2026). We thank the authors for releasing their codebase.
