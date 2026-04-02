@@ -1,0 +1,16 @@
+outputs/
+checkpoints/
+hf_cache/
+__pycache__/
+*.pyc
+*.out
+*.tsv
+eval_outputs/
+transfer_results/
+wandb/
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+myenv/
