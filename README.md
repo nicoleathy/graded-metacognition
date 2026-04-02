@@ -167,14 +167,14 @@ python scripts/evaluate_transfer.py \
 
 ## Citation
 
-```bibtex
-@article{your_citation_2026,
-  title={How Confident, Not Just Whether: Graded Metacognitive Training for Language Models},
-  author={Your Name},
-  journal={arXiv preprint},
-  year={2026}
-}
-```
+## ```bibtex
+## @article{your_citation_2026,
+##  title={How Confident, Not Just Whether: Graded Metacognitive Training for Language Models},
+##  author={Your Name},
+##  journal={arXiv preprint},
+##  year={2026}
+## }
+## ```
 
 ## Acknowledgments
 
