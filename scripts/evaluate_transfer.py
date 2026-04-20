@@ -15,6 +15,17 @@ Usage:
         --model Qwen/Qwen2.5-3B-Instruct \
         --datasets trivia_qa \
         --meta-types binary graded
+
+Notes
+-----
+* MMLU uses `correctness_mmlu` (first standalone A/B/C/D letter in output).
+  Substring inclusion on MMLU was producing spurious ~98% accuracy because
+  the question text itself contains "A)", "B)", "C)", "D)".
+* GSM8K uses `correctness_gsm8k` (last numeric token compared to gold).
+  Substring inclusion made e.g. "420" count as correct for gold "42".
+* --extract-logits adds logit-based (implicit) confidence alongside the
+  verbalized grade, at no additional forward-pass cost (we already generate
+  the meta response).
 """
 
 import argparse
@@ -22,6 +33,7 @@ import csv
 import json
 import os
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -38,7 +50,11 @@ from esma.data import (
 from esma.dataset import ESDataset
 from esma.metric import (
     IGNORE_VALUE,
+    build_option_token_ids,
     correctness_by_inclusion,
+    correctness_gsm8k,
+    correctness_mmlu,
+    expected_confidence_from_logits,
     graded_calibration_error,
     graded_meta_metrics,
     meta_metrics,
@@ -47,6 +63,7 @@ from esma.metric import (
     parse_graded_response,
     parse_numeric_response,
     type2_auroc,
+    type2_auroc_continuous,
     type2_d_prime,
 )
 from esma.prompt import (
@@ -76,6 +93,7 @@ parser.add_argument("--num-workers", type=int, default=4, help="Data loader work
 parser.add_argument("--seed", type=int, default=42, help="Random seed")
 parser.add_argument("--output-dir", type=str, default="transfer_results", help="Output directory")
 parser.add_argument("--save-details", action="store_true", help="Save per-example details to TSV")
+parser.add_argument("--extract-logits", action="store_true", help="Also extract logit-based (implicit) confidence. Applies to graded, fok, numeric probes; ignored for binary.")  # noqa: E501
 # fmt: on
 
 
@@ -89,11 +107,19 @@ DATASET_LOADERS = {
 }
 
 
+# Map dataset -> correctness function. Defaults to substring inclusion.
+CORRECTNESS_FNS = {
+    "mmlu": correctness_mmlu,
+    "gsm8k": correctness_gsm8k,
+}
+
+
 def evaluate_model_on_dataset(
     model: AutoModelForCausalLM,
     tokenizer: AutoTokenizer,
     data,
     meta_type: str,
+    dataset_name: str,
     args,
     logger,
 ) -> tuple[dict, list[dict]]:
@@ -103,6 +129,15 @@ def evaluate_model_on_dataset(
         Tuple of (aggregate_metrics_dict, per_example_details_list)
     """
     meta_prompt = META_PROMPT_TYPES[meta_type]
+    correctness_fn = CORRECTNESS_FNS.get(dataset_name, correctness_by_inclusion)
+
+    # Build token IDs for logit-based confidence extraction (graded probes only).
+    want_logits = args.extract_logits and meta_type != "binary"
+    option_token_ids = None
+    max_grade_for_logits = None
+    if want_logits:
+        option_token_ids = build_option_token_ids(tokenizer, meta_type)
+        max_grade_for_logits = {"graded": 3, "fok": 5, "jol": 5, "numeric": 10}[meta_type]
 
     dataset = ESDataset(
         data,
@@ -124,6 +159,7 @@ def evaluate_model_on_dataset(
     all_answers = []
     all_questions = []
     all_question_ids = []
+    all_logit_confidences: list[float] = []
 
     for batch in tqdm(loader, desc=f"  {meta_type}", leave=False):
         # Direct question
@@ -140,12 +176,34 @@ def evaluate_model_on_dataset(
         # Meta question
         meta_ids = batch["meta_input_ids"].to(model.device)
         meta_mask = batch["meta_attention_mask"].to(model.device)
-        meta_out = model.generate(
-            input_ids=meta_ids,
-            attention_mask=meta_mask,
-            max_new_tokens=args.max_meta_tokens,
-        )
-        meta_gen = meta_out[:, meta_ids.shape[1] :]
+
+        if want_logits:
+            # Request scores so we can read off first-token logits for the
+            # implicit (logit-based) confidence metric. This is free: we
+            # were already generating these tokens.
+            meta_out = model.generate(
+                input_ids=meta_ids,
+                attention_mask=meta_mask,
+                max_new_tokens=args.max_meta_tokens,
+                output_scores=True,
+                return_dict_in_generate=True,
+            )
+            meta_gen = meta_out.sequences[:, meta_ids.shape[1] :]
+            # scores[0] is logits for the FIRST generated token, shape (B, V)
+            first_scores = meta_out.scores[0].detach().float().cpu().numpy()
+            for i in range(first_scores.shape[0]):
+                conf = expected_confidence_from_logits(
+                    first_scores[i], option_token_ids, max_grade_for_logits
+                )
+                all_logit_confidences.append(conf)
+        else:
+            meta_out = model.generate(
+                input_ids=meta_ids,
+                attention_mask=meta_mask,
+                max_new_tokens=args.max_meta_tokens,
+            )
+            meta_gen = meta_out[:, meta_ids.shape[1] :]
+
         meta_decoded = tokenizer.batch_decode(meta_gen, skip_special_tokens=True)
 
         all_direct_outputs.extend(decoded)
@@ -157,12 +215,13 @@ def evaluate_model_on_dataset(
     # Compute metrics
     if meta_type == "binary":
         correctness, yes_list, yes_failures, no_failures, alignments = meta_metrics(
-            all_direct_outputs, all_meta_outputs, all_answers
+            all_direct_outputs, all_meta_outputs, all_answers,
+            correctness_fn=correctness_fn,
         )
-        accuracy = sum(correctness) / len(correctness)
-        yes_ratio = sum(yes_list) / len(yes_list)
+        accuracy = sum(correctness) / len(correctness) if correctness else 0.0
+        yes_ratio = sum(yes_list) / len(yes_list) if yes_list else 0.0
         d_prime = type2_d_prime(correctness, yes_list)
-        alignment_score = sum(alignments) / len(alignments)
+        alignment_score = sum(alignments) / len(alignments) if alignments else 0.0
 
         yfr_items = [1 - c for c, y in zip(correctness, yes_list) if y == 1]
         nfr_items = [c for c, y in zip(correctness, yes_list) if y == 0]
@@ -179,8 +238,12 @@ def evaluate_model_on_dataset(
         }
         meta_values = yes_list
     else:
+        logit_arg = all_logit_confidences if want_logits else None
         graded_results, correctness, grades = graded_meta_metrics(
-            all_direct_outputs, all_meta_outputs, all_answers, meta_type=meta_type
+            all_direct_outputs, all_meta_outputs, all_answers,
+            meta_type=meta_type,
+            correctness_fn=correctness_fn,
+            logit_confidences=logit_arg,
         )
         results = graded_results
         meta_values = grades
@@ -188,7 +251,7 @@ def evaluate_model_on_dataset(
     # Build per-example details
     details = []
     for i in range(len(all_questions)):
-        details.append({
+        row = {
             "question_id": all_question_ids[i],
             "question": all_questions[i],
             "ground_truths": str(all_answers[i]),
@@ -196,7 +259,10 @@ def evaluate_model_on_dataset(
             "meta_output": all_meta_outputs[i],
             "correct": correctness[i],
             "meta_value": meta_values[i],
-        })
+        }
+        if want_logits and i < len(all_logit_confidences):
+            row["logit_confidence"] = all_logit_confidences[i]
+        details.append(row)
 
     return results, details
 
@@ -237,14 +303,14 @@ def main(args):
                 logger.info(f"  Evaluating: {key}")
 
                 results, details = evaluate_model_on_dataset(
-                    model, tokenizer, data, meta_type, args, logger
+                    model, tokenizer, data, meta_type, dataset_name, args, logger
                 )
 
                 all_results[key] = results
                 logger.info(f"  Results: {json.dumps(results, indent=2)}")
 
                 # Save per-example details if requested
-                if args.save_details:
+                if args.save_details and details:
                     detail_path = os.path.join(
                         args.output_dir,
                         f"{model_label}_{dataset_name}_{meta_type}_details.tsv",
