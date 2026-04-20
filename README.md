@@ -19,9 +19,10 @@ accelerate launch --num_processes=4 scripts/train_es.py \
 
 # 3. Transfer evaluation
 python scripts/evaluate_transfer.py \
-    --model outputs/qwen3b-graded-esma/checkpoints/qwen3b-graded-esma_iter600 \
+    --model outputs/qwen3b-graded-esma/checkpoints/qwen3b-graded-esma_iter750 \
     --base-model Qwen/Qwen2.5-3B-Instruct \
-    --datasets trivia_qa gsm8k mmlu --meta-types binary graded fok
+    --datasets trivia_qa gsm8k mmlu --meta-types binary graded fok \
+    --extract-logits --save-details
 ```
 
 ## What We Changed from ESMA
@@ -40,7 +41,7 @@ Unchanged: `evolution.py` (ES is reward-agnostic), `utils.py`, all original data
 ```
 esma/
 ├── prompt.py       # Binary + graded meta-question templates
-├── metric.py       # d', gamma, AUROC, calibration error
+├── metric.py       # Goodman-Kruskal gamma, d', AUROC, calibration error, logit confidence
 ├── reward.py       # Binary and graded reward functions
 ├── evolution.py    # ES perturbation (unchanged)
 ├── dataset.py      # ESDataset + GradedESDataset
@@ -48,7 +49,7 @@ esma/
 scripts/
 ├── train_es.py          # Training (--meta-type binary|graded|fok)
 ├── evaluate_qa.py       # Single-dataset evaluation
-└── evaluate_transfer.py # Cross-dataset transfer evaluation
+└── evaluate_transfer.py # Cross-dataset transfer evaluation (--extract-logits for implicit confidence)
 ```
 
 ## Acknowledgments
