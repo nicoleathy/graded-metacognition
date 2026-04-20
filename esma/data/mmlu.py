@@ -32,22 +32,35 @@ def load_mmlu_meta(
 ) -> Dataset:
     """Load MMLU with standardized meta-evaluation format.
 
-    Formats questions with multiple-choice options and extracts
-    the correct answer letter.
+    Formats questions with multiple-choice options. The gold answer field
+    contains ONLY the correct letter (A/B/C/D) as a single-element list.
+    Downstream correctness scoring MUST use `correctness_mmlu`, which
+    matches the first standalone A/B/C/D token in the model output against
+    this letter. Do NOT use `correctness_by_inclusion` on MMLU: the prompt
+    itself contains the strings "A)", "B)", "C)", "D)", so substring
+    matching produces near-ceiling scores regardless of model ability.
     """
     if num_proc is None:
         num_proc = os.cpu_count() or 1
     dataset = load_mmlu(split, num_samples, subject)
 
+    # Add an explicit instruction to emit only the letter, to reduce
+    # parser failures on small/un-instruction-tuned models.
+    instruction = (
+        "Answer the following multiple-choice question. "
+        "Respond with ONLY the letter (A, B, C, or D) of the correct option.\n\n"
+    )
+
     def process(x, idx):
-        # Build formatted question with choices
-        question = x["question"]
+        question = instruction + x["question"]
         for j, choice_text in enumerate(x["choices"]):
             question += f"\n{CHOICES[j]}) {choice_text}"
 
         correct_answer = CHOICES[x["answer"]]
-        # Include both the letter and the full text as valid answers
-        answers = [correct_answer, x["choices"][x["answer"]]]
+        # IMPORTANT: store only the letter. Do not include the full choice
+        # text, because that allowed substring-inclusion correctness to
+        # match any output that happened to echo the question.
+        answers = [correct_answer]
 
         return {
             "question_id": f"mmlu_{idx}",
