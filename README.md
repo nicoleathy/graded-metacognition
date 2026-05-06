@@ -39,7 +39,7 @@ Unchanged: `evolution.py` (ES is reward-agnostic), `utils.py`, all original data
 ## Project Structure
 
 ```
-esma/
+esma-graded/
 ├── prompt.py       # Binary + graded meta-question templates
 ├── metric.py       # Goodman-Kruskal gamma, d', AUROC, calibration error, logit confidence
 ├── reward.py       # Binary and graded reward functions
