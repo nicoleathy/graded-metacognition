@@ -21,7 +21,7 @@ accelerate launch --num_processes=4 scripts/train_es.py \
 python scripts/evaluate_transfer.py \
     --model outputs/qwen3b-graded-esma/checkpoints/qwen3b-graded-esma_iter750 \
     --base-model Qwen/Qwen2.5-3B-Instruct \
-    --datasets trivia_qa gsm8k mmlu --meta-types binary graded fok \
+    --datasets trivia_qa gsm8k mmlu --meta-types binary graded \
     --extract-logits --save-details
 ```
 
@@ -29,7 +29,7 @@ python scripts/evaluate_transfer.py \
 
 | Component | Original ESMA | Our Extension |
 |-----------|--------------|---------------|
-| Probes | Binary Yes/No | + Graded (A–D), FOK (1–5), JOL (1–5) |
+| Probes | Binary Yes/No | + Graded (A–D) |
 | Metrics | d'\_type2 | + Gamma, Type 2 AUROC, calibration error |
 | Reward | Discrete {0, 1, 2} | Continuous [0, 2] proportional to calibration |
 | Datasets | TriviaQA | + GSM8K, MMLU |
@@ -46,8 +46,9 @@ esma-graded/
 ├── evolution.py    # ES perturbation (unchanged)
 ├── dataset.py      # ESDataset + GradedESDataset
 └── data/           # TriviaQA, GSM8K, MMLU loaders
+
 scripts/
-├── train_es.py          # Training (--meta-type binary|graded|fok)
+├── train_es.py          # Training (--meta-type binary|graded)
 ├── evaluate_qa.py       # Single-dataset evaluation
 └── evaluate_transfer.py # Cross-dataset transfer evaluation (--extract-logits for implicit confidence)
 ```
