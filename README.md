@@ -1,4 +1,4 @@
-## Graded Metacognition in LLMs
+# Graded Metacognition in LLMs
 
 Code for *"Graded Metacognitive Training for Language Models"*. We extend [ESMA](https://arxiv.org/abs/2602.02605) with graded confidence probes and rewards, enabling LLMs to express calibrated multi-level confidence rather than binary Yes/No self-knowledge.
 
