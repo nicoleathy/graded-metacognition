@@ -52,23 +52,6 @@ python scripts/evaluate_transfer.py \
 | Metrics | `d'_type2` | `p_yes`, gamma, AUROC, grade separation |
 | Evaluation | TriviaQA | TriviaQA, GSM8K, MMLU |
 
-## Project Structure
-
-```text
-esma-graded/
-├── prompt.py
-├── metric.py
-├── reward.py
-├── evolution.py
-├── dataset.py
-└── data/
-
-scripts/
-├── train_es.py
-├── evaluate_qa.py
-└── evaluate_transfer.py
-```
-
 ## Caveats
 
 Graded ESMA training was run only on Qwen2.5-Instruct 1.5B and 3B. Cross-family experiments are baseline-only. GSM8K results should be interpreted cautiously because keyword-only accuracy is low. MMLU is affected by A-D answer-label collision.
