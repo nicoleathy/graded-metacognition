@@ -82,8 +82,11 @@ class TestEsmaReward:
 class TestRewardTypeToFunction:
     """Tests for REWARD_TYPE_TO_FUNCTION mapping."""
 
+    BINARY = {"correct", "alignment", "esma"}
+    GRADED = {"graded", "graded_fok", "graded_numeric", "graded_quadratic"}
+
     def test_has_expected_keys(self):
-        assert set(REWARD_TYPE_TO_FUNCTION.keys()) == {"correct", "alignment", "esma"}
+        assert set(REWARD_TYPE_TO_FUNCTION.keys()) == self.BINARY | self.GRADED
 
     def test_correct_maps_to_correct_reward(self):
         assert REWARD_TYPE_TO_FUNCTION["correct"] is correct_reward
@@ -100,4 +103,5 @@ class TestRewardTypeToFunction:
         for name, fn in REWARD_TYPE_TO_FUNCTION.items():
             result = fn(direct, meta)
             assert len(result) == 2
-            assert all(isinstance(r, int) for r in result)
+            kinds = int if name in self.BINARY else (int, float)  # graded rewards are real-valued
+            assert all(isinstance(r, kinds) for r in result)
