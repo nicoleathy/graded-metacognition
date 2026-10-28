@@ -1,0 +1,13 @@
+# Pinned environment for the probe-validity experiments (paper 1). Python 3.12.
+# Same torch/transformers pair that was verified to run on Apple MPS and accept dtype="auto".
+torch==2.8.0
+transformers==4.56.0
+accelerate==1.10.1
+datasets==4.0.0
+numpy==2.3.2
+scipy==1.16.1
+pandas==2.3.2
+tqdm>=4.66
+pytest==8.4.1
+protobuf==7.36.2   # needed by sentencepiece-based tokenizers (Mistral, Llama, Gemma)
+sentencepiece==0.2.2
