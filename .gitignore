@@ -1,0 +1,32 @@
+outputs/
+checkpoints/
+hf_cache/
+__pycache__/
+*.pyc
+*.out
+*.tsv
+eval_outputs/
+transfer_results/
+wandb/
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+myenv/
+
+# paper 1 (probe validity)
+.venv/
+venv/
+*.log
+experiments/paper1/runs/
+
+# retrievable source snapshots named by code digest (local; commit only if you want them in the history)
+experiments/paper1/archive/
+experiments/paper1/audit/
+
+# Paper 1 outputs (kept out of the repository)
+experiments/paper1/results/
+experiments/paper1/cluster/packages/
+p1_runs_*.tar.gz
+p1-sweep-*.out
