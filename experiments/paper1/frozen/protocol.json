@@ -1,0 +1,1381 @@
+{
+ "version": "2.1",
+ "supersedes": {
+  "2.0": "fbb472678d98f555961b8035e0cef7a30d375813f5e822edca13901b21a2e22b"
+ },
+ "draws": 5,
+ "sampling": {
+  "temperature": 0.7,
+  "top_p": 0.8
+ },
+ "subset": 500,
+ "datasets": {
+  "mmlu": {
+   "manifest": "mmlu_test_s0_n2000",
+   "option_labels": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "conditions": [
+    {
+     "name": "direct_clean",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "direct_legacy",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "yesno_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "yesno_embedded",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "yesno_stem",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "letters_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_embedded",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_stem",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "digits_embedded",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "digits_stem",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "words_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "words_embedded",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "words_stem",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "letters_reversed_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_perm_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "C",
+      "A",
+      "D",
+      "B"
+     ]
+    },
+    {
+     "name": "letters_flip_order_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_flip_labels_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_optdigits",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_optdigits",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "letters_sampled0",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 1000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled1",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 2000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled2",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 3000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled3",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 4000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled4",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 5000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    }
+   ],
+   "prompt_sha256_on_reference_item": {
+    "direct_clean": "a624084bafe18ff1c60f10894aa111f3d84cffe80c7e8b5f62b2c62de631fa40",
+    "direct_legacy": "3fd72ae299845738bf35d433bfcad314974b6f4bfd23561e12263b006ab57b64",
+    "yesno_raw": "7996242d3e41c50ecc1b3c5bb6deb6e284239792d9591f433db43e1616e8e77e",
+    "yesno_embedded": "8b792302af19afd7b95944f0e6a67612e3b1dc564b0c24cb9c18fa318b6629b2",
+    "yesno_stem": "60cef3c6167b35cfdf98e7d77c754b578c2a3b64f4e471440505e17305974416",
+    "letters_raw": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_embedded": "84b668c2e1bfcc61ba182cca717d3ab66958cbf5d3459fbacb2665090ac22255",
+    "letters_stem": "34e1246d53aa61cc421dce8912a88ea223846e0c02a8708c38a66ac8e38c4128",
+    "digits_raw": "f668c84826f0179c541a64fb664aaa085e08c41ee16b0a17e695a62ffcfcfbaf",
+    "digits_embedded": "f60542c493a0f5dd3cab11cb98d25c78727fcd8479acfd30a2c697a5a2c14772",
+    "digits_stem": "eef618009b8fc194daea4270d66967e8408c8526f2b85b9b00507f3272895979",
+    "words_raw": "eb6fa63087a6d5f87378acb4b26eb647fbee0fb90548f64a111ea23e63e0a383",
+    "words_embedded": "a1c54bd9ba456e246fc528d987b961eddacefa9afde38341893d2531f144b5d8",
+    "words_stem": "4065041f69021ec4e83a4cd5a8d86fc35bc7a6e0a7027ccc643d8dcd0fdbd0d8",
+    "letters_reversed_raw": "784c641c8fe1880638d23cf0e236ed90fd225b03bb008fdda2958a659af14815",
+    "letters_perm_raw": "66381579756c9db6c86f265d864154fc8266752a6fff343d29967f5282fe4e10",
+    "letters_flip_order_raw": "4f2ba3ffa237cf8f844465b8cd7bba2b01188677d1e9110c785c29b847392623",
+    "letters_flip_labels_raw": "d72508e24d7043d04b351b8841a38d2415c9d7b670721d333fee5deedc5fbd41",
+    "letters_optdigits": "31229e013b446b46750eb37f390fb866ebab987e8ce380e0ea0e25de474c2c01",
+    "digits_optdigits": "2393d17b3acf84687d1b5f98f9d7b12501f2f874b55a4456644c31f5cc8c0f26",
+    "letters_sampled0": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled1": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled2": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled3": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled4": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3"
+   }
+  },
+  "mmlu_pro_eng": {
+   "manifest": "mmlu_pro_eng_all",
+   "option_labels": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J"
+   ],
+   "conditions": [
+    {
+     "name": "direct_clean",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J"
+     ]
+    },
+    {
+     "name": "yesno_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "letters_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "words_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "letters_reversed_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_perm_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "C",
+      "A",
+      "D",
+      "B"
+     ]
+    },
+    {
+     "name": "letters_flip_order_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_flip_labels_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_sampled0",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 1000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled1",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 2000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled2",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 3000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled3",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 4000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled4",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 5000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    }
+   ],
+   "prompt_sha256_on_reference_item": {
+    "direct_clean": "a624084bafe18ff1c60f10894aa111f3d84cffe80c7e8b5f62b2c62de631fa40",
+    "yesno_raw": "7996242d3e41c50ecc1b3c5bb6deb6e284239792d9591f433db43e1616e8e77e",
+    "letters_raw": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "digits_raw": "f668c84826f0179c541a64fb664aaa085e08c41ee16b0a17e695a62ffcfcfbaf",
+    "words_raw": "eb6fa63087a6d5f87378acb4b26eb647fbee0fb90548f64a111ea23e63e0a383",
+    "letters_reversed_raw": "784c641c8fe1880638d23cf0e236ed90fd225b03bb008fdda2958a659af14815",
+    "letters_perm_raw": "66381579756c9db6c86f265d864154fc8266752a6fff343d29967f5282fe4e10",
+    "letters_flip_order_raw": "4f2ba3ffa237cf8f844465b8cd7bba2b01188677d1e9110c785c29b847392623",
+    "letters_flip_labels_raw": "d72508e24d7043d04b351b8841a38d2415c9d7b670721d333fee5deedc5fbd41",
+    "letters_sampled0": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled1": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled2": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled3": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled4": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3"
+   }
+  },
+  "supergpqa_mfg": {
+   "manifest": "supergpqa_mfg_all",
+   "option_labels": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J"
+   ],
+   "conditions": [
+    {
+     "name": "direct_clean",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J"
+     ]
+    },
+    {
+     "name": "yesno_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "letters_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "words_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "letters_reversed_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_perm_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "C",
+      "A",
+      "D",
+      "B"
+     ]
+    },
+    {
+     "name": "letters_flip_order_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_flip_labels_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_sampled0",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 1000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled1",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 2000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled2",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 3000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled3",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 4000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled4",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 5000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    }
+   ],
+   "prompt_sha256_on_reference_item": {
+    "direct_clean": "a624084bafe18ff1c60f10894aa111f3d84cffe80c7e8b5f62b2c62de631fa40",
+    "yesno_raw": "7996242d3e41c50ecc1b3c5bb6deb6e284239792d9591f433db43e1616e8e77e",
+    "letters_raw": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "digits_raw": "f668c84826f0179c541a64fb664aaa085e08c41ee16b0a17e695a62ffcfcfbaf",
+    "words_raw": "eb6fa63087a6d5f87378acb4b26eb647fbee0fb90548f64a111ea23e63e0a383",
+    "letters_reversed_raw": "784c641c8fe1880638d23cf0e236ed90fd225b03bb008fdda2958a659af14815",
+    "letters_perm_raw": "66381579756c9db6c86f265d864154fc8266752a6fff343d29967f5282fe4e10",
+    "letters_flip_order_raw": "4f2ba3ffa237cf8f844465b8cd7bba2b01188677d1e9110c785c29b847392623",
+    "letters_flip_labels_raw": "d72508e24d7043d04b351b8841a38d2415c9d7b670721d333fee5deedc5fbd41",
+    "letters_sampled0": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled1": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled2": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled3": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3",
+    "letters_sampled4": "e9060f9c60712d5fe977b2613e53ffd7f1c035d22a5a9895477c7469f0a669d3"
+   }
+  },
+  "triviaqa": {
+   "manifest": "triviaqa_val_s0_n2000",
+   "option_labels": [],
+   "conditions": [
+    {
+     "name": "direct_clean",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": []
+    },
+    {
+     "name": "yesno_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "letters_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "words_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "letters_reversed_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_perm_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "C",
+      "A",
+      "D",
+      "B"
+     ]
+    },
+    {
+     "name": "letters_flip_order_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_flip_labels_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_sampled0",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 1000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled1",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 2000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled2",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 3000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled3",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 4000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled4",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 5000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    }
+   ],
+   "prompt_sha256_on_reference_item": {
+    "direct_clean": "d84b85c84c11972386babb20b38335873c06017cf750a31d09536fe1cb31db7a",
+    "yesno_raw": "10a14fb2f58a6c8af10b1e17ec6ba8f26ba02790f53235926a4a95f1d16dd43d",
+    "letters_raw": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "digits_raw": "7ef160c2fd515a1fbac71039bdae80e5d45acb662680c0fc31f4c0d521f903d9",
+    "words_raw": "58c6d53959f3ac381ecae154db0c10dce38de6af3b939c64218503a981de70f6",
+    "letters_reversed_raw": "8f240c38802452b0fa4f36572b2126c2ab34c2b00c69e74085848c9bebcadf9b",
+    "letters_perm_raw": "c70f479f1f113e8e5fd17f64b0f59948aaf2a22f979514915d8fa39ba1810e34",
+    "letters_flip_order_raw": "d44efa6cc1d2339d73de5f74d5b3bee79f579dae2b91608763906d47ebb28630",
+    "letters_flip_labels_raw": "1849fa97c3e4b83d40ecd2f5c2ef9b61a6bbf4a78e973c238941551dfd659a61",
+    "letters_sampled0": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled1": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled2": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled3": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled4": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652"
+   }
+  },
+  "webquestions": {
+   "manifest": "webquestions_test_s0_n1000",
+   "option_labels": [],
+   "conditions": [
+    {
+     "name": "direct_clean",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": []
+    },
+    {
+     "name": "yesno_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "name": "letters_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "digits_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "1",
+      "2",
+      "3",
+      "4"
+     ]
+    },
+    {
+     "name": "words_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "CERTAIN",
+      "PROBABLY",
+      "UNSURE",
+      "NO IDEA"
+     ]
+    },
+    {
+     "name": "letters_reversed_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_perm_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "C",
+      "A",
+      "D",
+      "B"
+     ]
+    },
+    {
+     "name": "letters_flip_order_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_flip_labels_raw",
+     "max_new_tokens": 32,
+     "sampling": null,
+     "seed": 0,
+     "subset": null,
+     "labels": [
+      "D",
+      "C",
+      "B",
+      "A"
+     ]
+    },
+    {
+     "name": "letters_sampled0",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 1000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled1",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 2000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled2",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 3000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled3",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 4000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    },
+    {
+     "name": "letters_sampled4",
+     "max_new_tokens": 16,
+     "sampling": {
+      "temperature": 0.7,
+      "top_p": 0.8
+     },
+     "seed": 5000,
+     "subset": 500,
+     "labels": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ]
+    }
+   ],
+   "prompt_sha256_on_reference_item": {
+    "direct_clean": "d84b85c84c11972386babb20b38335873c06017cf750a31d09536fe1cb31db7a",
+    "yesno_raw": "10a14fb2f58a6c8af10b1e17ec6ba8f26ba02790f53235926a4a95f1d16dd43d",
+    "letters_raw": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "digits_raw": "7ef160c2fd515a1fbac71039bdae80e5d45acb662680c0fc31f4c0d521f903d9",
+    "words_raw": "58c6d53959f3ac381ecae154db0c10dce38de6af3b939c64218503a981de70f6",
+    "letters_reversed_raw": "8f240c38802452b0fa4f36572b2126c2ab34c2b00c69e74085848c9bebcadf9b",
+    "letters_perm_raw": "c70f479f1f113e8e5fd17f64b0f59948aaf2a22f979514915d8fa39ba1810e34",
+    "letters_flip_order_raw": "d44efa6cc1d2339d73de5f74d5b3bee79f579dae2b91608763906d47ebb28630",
+    "letters_flip_labels_raw": "1849fa97c3e4b83d40ecd2f5c2ef9b61a6bbf4a78e973c238941551dfd659a61",
+    "letters_sampled0": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled1": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled2": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled3": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652",
+    "letters_sampled4": "08ac35eb69415f2e3f1aabde26398fb7336f5768fb8d0163bd99c992c019b652"
+   }
+  }
+ },
+ "scales": {
+  "letters": {
+   "labels": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ],
+   "descriptors": [
+    "I am certain I know the answer",
+    "I think I probably know",
+    "I'm not sure",
+    "I definitely do not know"
+   ],
+   "lines": [
+    "A) I am certain I know the answer",
+    "B) I think I probably know",
+    "C) I'm not sure",
+    "D) I definitely do not know"
+   ]
+  },
+  "letters_reversed": {
+   "labels": [
+    "D",
+    "C",
+    "B",
+    "A"
+   ],
+   "descriptors": [
+    "I am certain I know the answer",
+    "I think I probably know",
+    "I'm not sure",
+    "I definitely do not know"
+   ],
+   "lines": [
+    "A) I definitely do not know",
+    "B) I'm not sure",
+    "C) I think I probably know",
+    "D) I am certain I know the answer"
+   ]
+  },
+  "letters_perm": {
+   "labels": [
+    "C",
+    "A",
+    "D",
+    "B"
+   ],
+   "descriptors": [
+    "I am certain I know the answer",
+    "I think I probably know",
+    "I'm not sure",
+    "I definitely do not know"
+   ],
+   "lines": [
+    "A) I think I probably know",
+    "B) I definitely do not know",
+    "C) I am certain I know the answer",
+    "D) I'm not sure"
+   ]
+  },
+  "digits": {
+   "labels": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "descriptors": [
+    "I am certain I know the answer",
+    "I think I probably know",
+    "I'm not sure",
+    "I definitely do not know"
+   ],
+   "lines": [
+    "1) I am certain I know the answer",
+    "2) I think I probably know",
+    "3) I'm not sure",
+    "4) I definitely do not know"
+   ]
+  },
+  "words": {
+   "labels": [
+    "CERTAIN",
+    "PROBABLY",
+    "UNSURE",
+    "NO IDEA"
+   ],
+   "descriptors": [
+    "I am certain I know the answer",
+    "I think I probably know",
+    "I'm not sure",
+    "I definitely do not know"
+   ],
+   "lines": [
+    "CERTAIN: I am certain I know the answer",
+    "PROBABLY: I think I probably know",
+    "UNSURE: I'm not sure",
+    "NO IDEA: I definitely do not know"
+   ]
+  }
+ },
+ "sha256": "36c258b2381d13f918b676af598f98857e9680bc212955c738f2838584f8c891"
+}

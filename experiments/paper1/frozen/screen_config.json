@@ -1,0 +1,17 @@
+{
+ "config": {
+  "s1_pass": 0.95,
+  "s1_fail": 0.8,
+  "s3_min_entropy": 0.3,
+  "s3_max_top_share": 0.9,
+  "s4_min_kappa": 0.6,
+  "s4_min_mappings": 3,
+  "s4_spread_factor": 2.0,
+  "s5_min_kappa": 0.6,
+  "s7_min_abs_rho": 0.1,
+  "min_valid": 50,
+  "alpha": 0.05
+ },
+ "sha256": "385c11250eea9283941077998285dc233e254d85ab0d5c0568901800ce0b4f1d",
+ "note": "Thresholds frozen after validation on synthetic probes and before any real screen."
+}
