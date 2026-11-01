@@ -10,7 +10,7 @@ cd "$(dirname "$0")/../../.."
 slug="${MODEL//\//__}"
 dir="experiments/paper1/runs/$OUTDIR/$slug"
 [ -d "$dir" ] || { echo "no run directory for $MODEL in runs/$OUTDIR"; exit 1; }
-prefix="p1_runs"; [ "$OUTDIR" = "sweep" ] || prefix="p1_calibration_${OUTDIR}"
+case "$OUTDIR" in sweep) prefix="p1_runs";; replication_*) prefix="p1_${OUTDIR}";; *) prefix="p1_calibration_${OUTDIR}";; esac   # p1_replication_w2_<model>_<time>.tar.gz
 out="experiments/paper1/cluster/packages/${prefix}_${slug}_$(date +%Y%m%d-%H%M).tar.gz"
 mkdir -p "$(dirname "$out")"
 {

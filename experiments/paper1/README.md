@@ -84,3 +84,11 @@ Re-analysis after any change to the parser or scorer needs no new generation:
 ```bash
 python experiments/paper1/analyze_sweep.py --exp sweep --n-boot 1000   # all finished directories -> results/sweep_summary.json
 ```
+
+## Replication and sensitivity (2026-11-01)
+
+| What | How |
+|---|---|
+| Replication suite | `run_sweep.py --suite replication --out replication_<w>` with `PROBE_WORDING=<w>` (w1 the study's text, w2 and w3 paraphrases of the probe's question and descriptors); `protocol.conditions_for(dataset, "replication")`; `cluster/run_replication.sh`; plan in `frozen/replication_plan.json` (local, like the study's pre-registration records); `verify_runs.py --exp replication_<w>`; `analyze_sweep.py --exp replication_<w> --jobs N` |
+| Lenient scorer | `probe_validity/scoring.py: score_open_lenient`, selected by `OPEN_SCORER=lenient` or `analyze_sweep.py --open-scorer lenient` (writes `<exp>_summary_lenient.json`); a declared sensitivity analysis, never the primary result |
+| Parallel analysis | `analyze_sweep.py --jobs N`: one process per run directory; the bootstrap seeds are fixed in the code, so the numbers do not depend on N |

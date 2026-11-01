@@ -1,0 +1,16 @@
+# One row per replication job (one model, all three wordings, one card). Columns (tab-separated): model, GPU memory needed in GB, status, note.
+# status "ready": run it. "ready_gated": run it, weights already in HF_HOME (the owner downloaded them). "done": finished and ingested. Models are listed in priority order.
+# The datasets are mmlu, mmlu_pro_eng and supergpqa_mfg (run_replication.sh default). Same card type for all three wordings of a model; for the six models whose study run was on the cluster, prefer the card of that run.
+Qwen/Qwen3-1.7B	16	ready	study run on an A100-SXM4-40GB
+Qwen/Qwen2.5-14B-Instruct	40	ready	study run (MMLU and the SuperGPQA slice) on an A100-SXM4-40GB; needs 40 GB or more
+meta-llama/Llama-3.2-1B-Instruct	16	ready_gated	study run on an RTX A5000
+meta-llama/Llama-3.2-3B-Instruct	16	ready_gated	study run on an RTX A5000
+google/gemma-2-2b-it	16	ready_gated	study run on an RTX A5000; eager attention (the runner picks it)
+google/gemma-2-9b-it	40	ready_gated	study run on an H100 NVL; eager attention; needs 40 GB or more, batch size stays 16
+Qwen/Qwen2.5-1.5B-Instruct	16	ready	study run on the Mac (MPS): the replication is a different platform, within-replication contrasts only
+Qwen/Qwen2.5-3B-Instruct	16	ready	study run on the Mac
+Qwen/Qwen2.5-7B-Instruct	24	ready	study run on the Mac
+Qwen/Qwen3-4B	16	ready	study run on the Mac
+Qwen/Qwen3-8B	24	ready	study run on the Mac
+meta-llama/Meta-Llama-3.1-8B-Instruct	24	ready_gated	study run on the Mac; gated: the weights must be in HF_HOME first (the owner's licence and token)
+mistralai/Mistral-7B-Instruct-v0.3	24	ready_gated	study run on the Mac; gated on the Hub: the weights must be in HF_HOME first

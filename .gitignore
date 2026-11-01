@@ -6,6 +6,7 @@ __pycache__/
 *.out
 *.tsv
 !experiments/paper1/cluster/jobs.tsv
+!experiments/paper1/cluster/replication_jobs.tsv
 eval_outputs/
 transfer_results/
 wandb/

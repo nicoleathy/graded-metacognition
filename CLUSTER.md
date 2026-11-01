@@ -120,3 +120,31 @@ Llama-3.1-8B 8.8, Mistral-7B 10.0. A single modern GPU should be several times f
 - Hub or dataset errors under `HF_HUB_OFFLINE=1`: the prefetch did not complete for that model or dataset; rerun `prefetch.py` on a node with internet access.
 - `NaN logits`: report it with the log; do not work around it by changing the attention implementation silently, because that changes the platform record.
 - Anything about a changed setting on resume: the directory was written under other settings; start that model's directory afresh rather than overriding the check.
+
+## Replication (added 1 November 2026)
+
+The study is finished (13 models, five datasets, packages ingested). The replication repeats its interventions where they were not run, and is the next cluster work. It does not touch the
+study's runs: `runs/sweep` and the frozen protocol stay as they are, and `run_sweep.py` refuses to run the sweep under another wording or to write a replication into `runs/sweep`.
+
+**What it runs.** The plan (its hypotheses and decision rules) is frozen with the study's own records, which are not in this repository, before any replication output exists; what the cluster needs is stated here and in the code. Per model: the three multiple-choice sets
+(`mmlu`, `mmlu_pro_eng`, `supergpqa_mfg`) under three wordings of the confidence probe (`PROBE_WORDING` = `w1` the study's text, `w2` and `w3` two paraphrases), each with the embedded
+instruction, the stem-only prompt, the answer-label control and the label x order design (18 conditions plus the direct answer, no sampled decodes). About 1.2 times the generation of one study sweep per
+model, as three directories: `runs/replication_w1`, `runs/replication_w2`, `runs/replication_w3`.
+
+**How.** One job per model; the job runs the three wordings one after the other, so a model stays on one card.
+
+```bash
+bash experiments/paper1/cluster/submit_replication.sh            # dry run: prints one sbatch line per ready model of replication_jobs.tsv
+bash experiments/paper1/cluster/submit_replication.sh --go
+# or by hand, one model:  sbatch --gres=gpu:1 --time=24:00:00 experiments/paper1/cluster/replication.sbatch Qwen/Qwen3-1.7B
+# one dataset or wording again after a failure (finished directories are skipped):  experiments/paper1/cluster/run_replication.sh Qwen/Qwen3-1.7B "mmlu" "w2"
+```
+
+The rules above apply unchanged (clean checkout of the pushed commit, no `--allow-config-change`, defaults, offline, no analysis on the cluster). Specific to the replication:
+
+- **One card type per model for all three wordings.** For the six models whose study run was on the cluster (Qwen3-1.7B and Qwen2.5-14B on an A100-SXM4-40GB; Llama-3.2-1B and 3B and Gemma-2-2B on an RTX A5000; Gemma-2-9B on an
+  H100 NVL) prefer the card of the study run. The other seven models ran on the Mac in the study: any single card type is fine, and their replication is a different platform, so only contrasts inside the replication are compared.
+- **Weights.** The seven Mac models (and the gated Llama-3.1-8B and Mistral-7B-v0.3) are probably not in the cluster's `HF_HOME`: fetch them first (`prefetch.py`; the gated ones by their owner), as for the study.
+- `run_job.sh` verifies each directory (`verify_runs.py --exp replication_<wording>` must print only `ok` lines) and `package_runs.sh` writes `p1_replication_<wording>_<model>_<time>.tar.gz` with a `.sha256`. Publish the packages to the
+  runs repository as before, with a README row (card, host, attention, commit) per package.
+- Order of the models in `replication_jobs.tsv` is the priority. Use as many GPUs as the queue allows: the models are independent jobs.
