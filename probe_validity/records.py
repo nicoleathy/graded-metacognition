@@ -1,6 +1,7 @@
 """From stored generation rows to the arrays the metrics and the screen need. Everything is aligned to the manifest order:
 position i of every array is item i."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,10 +11,18 @@ from .generate import read_jsonl
 from .parse import parse_mcq, parse_strict
 from .prompts import Item
 from .scales import PROBE_SCALES, Scale
-from .scoring import score_mcq, score_open
+from .scoring import score_mcq, score_open, score_open_lenient
 from .screen import Cell
 
 MAPPING_SCALES = ("letters", "letters_reversed", "letters_perm", "digits", "words")  # the four-level scales: one meaning each
+
+
+def open_scorer():
+    """The scorer of open answers: the frozen one, or the lenient sensitivity scorer when OPEN_SCORER=lenient is set (read at call time)."""
+    name = os.environ.get("OPEN_SCORER", "strict")
+    if name not in ("strict", "lenient"):
+        raise ValueError(f"OPEN_SCORER must be strict or lenient, not {name!r}")
+    return score_open if name == "strict" else score_open_lenient
 
 
 def read_condition(directory: Path, name: str, n: int) -> list[dict | None]:
@@ -51,7 +60,7 @@ def direct_outcomes(rows: list[dict | None], items: list[Item]) -> Direct:
                 z = np.logaddexp.reduce([lp[lab] for lab in own])
                 ref[i] = ref_mean[i] = lp[p.label] - z  # log of the probability of the chosen label among the item's labels
         else:
-            sc = score_open(row["text"], item.answers)
+            sc = open_scorer()(row["text"], item.answers)
             labels[i], valid[i], correct[i] = sc.span, bool(sc.span), sc.correct
             if "span_lp" in row and row.get("span_n"):
                 ref[i], ref_mean[i] = row["span_lp"], row["span_lp"] / row["span_n"]

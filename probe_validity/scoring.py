@@ -163,3 +163,59 @@ def score_open(reply: str, aliases: list[str] | tuple[str, ...]) -> OpenScore:
     correct = int(exact or (contains and not hedged))
     legacy = int(any(a.lower() in reply.lower() for a in aliases))
     return OpenScore(correct, exact, contains, hedged, legacy, span, int(_list_like(masked)))
+
+
+# ---- the sensitivity scorer ---------------------------------------------------------------------------------------------------------------------
+# The frozen scorer above is stricter than a careful reader: it looks at the first line only and needs an alias to occur as written. The audit of
+# 1 November 2026 found that two raters accepted replies it rejects ("Spanish" for "Spanish Language", an answer on a later line). This scorer
+# relaxes exactly three things, chosen as the usual leniencies and not tuned on the audit sample, and is used only for a declared sensitivity
+# analysis (OPEN_SCORER=lenient): the primary results are the frozen scorer's. It keeps the refusal to credit a reply that says it does not know and
+# the negation and retraction rules, so it is more lenient, not an upper bound on every conceivable reading.
+_GENERIC_TAIL = frozenset({"language", "languages"})
+_QUALIFIER = re.compile(r"\s*[(\[][^)\]]*[)\]]")  # "True (album)", "Paris [city]"
+_COMMON = frozenset("a an the i it is be to of in on and or no yes not true false".split())
+LENIENT_PREFIX_MAX_TOKENS = 4  # a reply this short that is part of an accepted answer ("Spanish" for "Spanish Language") is that answer
+LENIENT_MIN_COVERAGE = 0.5  # the part must be at least this share of the accepted answer's tokens
+
+
+def _alias_variants(alias: str) -> list[list[str]]:
+    """Token lists the lenient scorer accepts for one alias: as written, without a bracketed qualifier, and without a trailing generic word."""
+    base = unify_punctuation(alias)
+    found: set[tuple[str, ...]] = set()
+    for text in (base, _QUALIFIER.sub("", base)):
+        tokens = normalize_answer(text).split()
+        if tokens:
+            found.add(tuple(tokens))
+            if len(tokens) > 1 and tokens[-1] in _GENERIC_TAIL:
+                found.add(tuple(tokens[:-1]))
+    return [list(v) for v in sorted(found)]
+
+
+def _usable_anywhere(variant: list[str]) -> bool:
+    """Searching the whole reply is safe for a multi-token answer or a single token of at least four letters that is not a common word."""
+    return len(variant) > 1 or (len(variant[0]) >= 4 and variant[0] not in _COMMON)
+
+
+def _is_part_of(reply: list[str], variant: list[str]) -> bool:
+    n = len(reply)
+    if not (1 <= n <= LENIENT_PREFIX_MAX_TOKENS) or all(tok in _COMMON for tok in reply) or len(variant) < 2 or n / len(variant) < LENIENT_MIN_COVERAGE:
+        return False
+    return any(variant[i : i + n] == reply for i in range(len(variant) - n + 1))
+
+
+def score_open_lenient(reply: str, aliases: list[str] | tuple[str, ...]) -> OpenScore:
+    """The sensitivity scorer: an alias may occur anywhere in the reply (outside a negation or retraction), an alias is also read without a bracketed
+    qualifier and without a trailing "language", and a short reply that is part of an alias counts. A reply that withholds an answer does not."""
+    span = unify_punctuation(first_span(reply))
+    whole = unify_punctuation(reply)
+    accepted = [unify_punctuation(a) for a in aliases]
+    strict = score_open(reply, aliases)
+    variants = [v for a in accepted for v in _alias_variants(a)]
+    tokens, clauses = _tokens_with_clauses(whole)
+    contains = int(any(_usable_anywhere(v) and _contains_tokens(tokens, clauses, v) for v in variants))
+    first_tokens, first_clauses = _tokens_with_clauses(span)
+    contains = int(contains or any(_contains_tokens(first_tokens, first_clauses, v) for v in variants))  # short single-token aliases only in the first span
+    part = int(any(_is_part_of(first_tokens, v) for v in variants))
+    withheld = int(_has_phrase(normalize_answer(_mask_aliases(whole, accepted)).split(), UNCOMMITTED))
+    correct = int(strict.correct or ((contains or part) and not withheld))
+    return OpenScore(correct, strict.exact, contains, withheld, strict.legacy, span, 0)
