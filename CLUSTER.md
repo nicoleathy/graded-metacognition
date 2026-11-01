@@ -6,9 +6,11 @@ The cluster takes everything that has not been started (`experiments/paper1/clus
 
 | Model | Datasets | GPU memory | Status |
 |---|---|---|---|
-| Qwen/Qwen3-1.7B | mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions | 16 GB | **ready** |
-| Qwen/Qwen2.5-14B-Instruct | mmlu supergpqa_mfg (validity-only run) | 40 GB or more | **ready** |
-| meta-llama/Llama-3.2-1B-Instruct, Llama-3.2-3B-Instruct, google/gemma-2-2b-it, gemma-2-9b-it | all five | 16 to 24 GB | blocked: gated models; the owner accepts each licence and downloads the weights with their own Hugging Face token (nothing in this repository reads a token) |
+| Qwen/Qwen3-1.7B | mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions | 16 GB | done (ingested on the Mac) |
+| Qwen/Qwen2.5-14B-Instruct | mmlu supergpqa_mfg (validity-only run) | 40 GB or more | done (ingested on the Mac) |
+| meta-llama/Llama-3.2-1B-Instruct, Llama-3.2-3B-Instruct, google/gemma-2-2b-it, gemma-2-9b-it | all five | 16 to 24 GB | **ready_gated**: gated models; the owner (who has accepted the licences) downloads the weights to `HF_HOME` with their own Hugging Face token first (nothing in this repository reads a token): see "Gated weights" below. Gemma-2 caps its attention scores (`attn_logit_softcapping` 50), which the sdpa path of the pinned transformers (4.56.0) ignores, so the runner picks eager attention for it on any device (`default_attention` in `probe_validity/generate.py`); the run records `attention: eager` |
+
+Update, 1 November: the first two rows are finished and ingested on the Mac, and the platform calibration run (below) was done. The next cluster jobs are the four gated models (weights first: "Gated weights" below).
 
 ## Rules that keep the study valid
 
@@ -57,6 +59,54 @@ python experiments/paper1/verify_runs.py                  # must print only "ok"
 ```
 
 The analysis, the tables and the manuscript are then regenerated on the Mac.
+
+## Which GPUs
+
+bfloat16 must be native: Ampere or newer (RTX 3090, A5000, A40, A100, L40/L40S, H100, H200). Do not use V100, RTX 8000 or RTX 2080 cards, which have no native bfloat16. A model keeps one card type for all its datasets (the run records the card in `meta.json` as `gpu`, and the package note records the host). The 1B to 3B models and Gemma-2-2B fit a 24 GB card; Gemma-2-9B and Qwen2.5-14B need 40 GB or more at the fixed batch size of 16. Do not lower the batch size to make a model fit: it is part of the recorded settings.
+
+## Gated weights (Llama-3.2-1B and 3B, Gemma-2-2B and 9B)
+
+On a login node with internet access, as the account that accepted the licences. The token is entered by its owner, is never written into this repository, job scripts or logs, and is removed afterwards:
+
+```bash
+export HF_HOME=<scratch>/hf_cache                         # the same cache the jobs use
+hf auth login                                             # paste the token when asked
+for m in meta-llama/Llama-3.2-1B-Instruct meta-llama/Llama-3.2-3B-Instruct google/gemma-2-2b-it google/gemma-2-9b-it; do
+  hf download "$m" --exclude "*.bin" "*.pt" "*.pth" "*.onnx" "*.gguf" "*.msgpack" "*.h5" "original/*" "*.ot"     # safetensors only, as the runner reads
+done
+hf auth logout
+```
+
+Then `bash experiments/paper1/cluster/submit_all.sh` (review) and `--go`; jobs run offline as before. The four models need about 2.5, 6.4, 5.3 and 18.5 GB.
+
+## Platform calibration run (one extra directory; never `runs/sweep`)
+
+The study keeps each model on one platform. To measure what the platform itself changes, one model that ran on the Mac is run again here, into its own directory, on the same items,
+prompts, decoding, dtype, batch size and **model revision**. It is a calibration, not part of the study: nothing from it is added to `runs/sweep/`.
+
+The model is `Qwen/Qwen2.5-1.5B-Instruct`, dataset `mmlu` (2,000 items), revision `989aa7980e4cf806f80c7fef2b1adb7bc71aa306` (chat-template SHA-256 starts `cd8e9439f057`). The runner finds a model
+through the cache's `refs/main`, so that file must name this revision, and the run's `meta.json` must then record it.
+
+```bash
+export HF_HUB_DISABLE_IMPLICIT_TOKEN=1                    # public weights, fetched anonymously
+REV=989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+python -c "from huggingface_hub import snapshot_download as s; s('Qwen/Qwen2.5-1.5B-Instruct', revision='$REV', token=False, ignore_patterns=['*.bin','*.pt','*.pth','*.onnx','*.gguf','*.msgpack','*.h5','original/*','*.ot'])"
+D=$HF_HOME/hub/models--Qwen--Qwen2.5-1.5B-Instruct; mkdir -p $D/refs && printf %s $REV > $D/refs/main
+HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 bash experiments/paper1/cluster/run_job.sh Qwen/Qwen2.5-1.5B-Instruct mmlu platform_check_cuda
+```
+
+The job writes `experiments/paper1/cluster/packages/p1_calibration_platform_check_cuda_<model>_<time>.tar.gz` and a `.sha256` file. On the Mac:
+
+```bash
+shasum -a 256 -c p1_calibration_platform_check_cuda_<model>_<time>.tar.gz.sha256
+mkdir -p experiments/paper1/runs/platform_check_cuda && tar -xzf p1_calibration_platform_check_cuda_<model>_<time>.tar.gz -C experiments/paper1/runs/platform_check_cuda/
+python experiments/paper1/cluster/compare_platforms.py --model Qwen/Qwen2.5-1.5B-Instruct --dataset mmlu \
+  --a experiments/paper1/runs/sweep --b experiments/paper1/runs/platform_check_cuda --json platform_check.json
+```
+
+The comparison first verifies both directories (all rows present, every file's SHA-256 as recorded). It then reports whether the settings that must be equal are, which platform fields differ,
+how many replies are identical per condition, the drift of the first-token label log-probabilities, paired differences (accuracy, compliance, AUROC) with bootstrap intervals, and the screen
+verdicts of both runs side by side. The sampled decodes of the letters probe draw from each device's own random generator, so they are not expected to agree item by item.
 
 ## Resources
 
