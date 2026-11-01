@@ -263,7 +263,7 @@ def collision_block(directory: Path, items: list[Item], direct, n_boot: int = N_
     if not all((directory / f"{c}.jsonl").exists() for _, c in cells.values()):
         return None
     n = len(items)
-    answer = np.array([("ABCD".index(lab) if lab else -1) for lab in direct.label])
+    answer = np.array([("ABCDEFGHIJ".index(lab) if lab else -1) for lab in direct.label])  # up to ten options; a confidence scale has four levels, so E-J never agree
     correct = direct.correct
     arr = {}
     for key, (scale_name, cond) in cells.items():
@@ -275,7 +275,7 @@ def collision_block(directory: Path, items: list[Item], direct, n_boot: int = N_
     out = {"n_common": int(common.sum()), "cells": {}, "effects": {}, "residual_agreement": {}}
     for key, a in arr.items():
         ok = (a["conf"] >= 0) & (answer >= 0)
-        pc, pa = np.bincount(a["conf"][ok], minlength=4) / ok.sum(), np.bincount(answer[ok], minlength=4) / ok.sum()
+        pc, pa = np.bincount(a["conf"][ok], minlength=10) / ok.sum(), np.bincount(answer[ok], minlength=10) / ok.sum()
         out["cells"][key] = {
             "n_valid": int((a["conf"] >= 0).sum()), "collision": key.split("/")[0] == key.split("/")[1],
             "copy_rate": r4(np.mean(a["conf"][ok] == answer[ok])), "copy_chance": r4(float(pc @ pa)),

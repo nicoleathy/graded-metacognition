@@ -2,11 +2,15 @@
 
     python experiments/paper1/analyze_sweep.py                  # runs/sweep and runs/e10
     python experiments/paper1/analyze_sweep.py --exp e10 --model Qwen/Qwen2.5-7B-Instruct
+    python experiments/paper1/analyze_sweep.py --exp replication_w2 --jobs 12          # one process per run directory
+    python experiments/paper1/analyze_sweep.py --exp sweep --datasets triviaqa webquestions --open-scorer lenient   # the sensitivity analysis
 """
 
 import argparse
 import json
+import os
 import time
+from concurrent.futures import ProcessPoolExecutor
 
 from analysis import summarise_directory
 from common import MANIFESTS, ROOT, RUNS, model_slug
@@ -49,6 +53,13 @@ def run_dirs(exp: str, model: str | None, datasets: list[str] | None = None, com
             yield model_dir.name, d
 
 
+def _summarise_job(job):
+    """One run directory in a worker process (items are loaded per process; the bootstrap seeds are fixed in the code, so the result does not depend on the worker)."""
+    directory, manifest_name, dataset, n_boot = job
+    manifest = load_manifest(MANIFESTS / f"{manifest_name}.json")
+    return summarise_directory(directory, items_for(manifest), DATASET_TABLE[dataset][1], n_boot)
+
+
 def overview(model: str, dataset: str, s: dict) -> str:
     d = s["direct"]["clean"]
     lines = [f"{model} | {dataset} | n={s['n']} | direct acc {d['accuracy']} (valid {d['valid_rate']})"]
@@ -68,29 +79,42 @@ def main() -> None:
     ap.add_argument("--datasets", nargs="+", help="only these datasets (sweep layout)")
     ap.add_argument("--include-incomplete", action="store_true", help="also summarise directories still being written")
     ap.add_argument("--skip-verify", action="store_true", help="summarise even if a run directory fails the completeness and hash check")
+    ap.add_argument("--jobs", type=int, default=1, help="worker processes (one run directory each); 1 = serial")
+    ap.add_argument("--open-scorer", choices=("strict", "lenient"), default="strict",
+                    help="correctness of open answers: the frozen scorer (the study) or the lenient sensitivity scorer; the output file name carries it")
     args = ap.parse_args()
+    os.environ["OPEN_SCORER"] = args.open_scorer  # read at call time by probe_validity.records; inherited by the worker processes
     RESULTS.mkdir(parents=True, exist_ok=True)
     for exp in args.exp:
-        summary = {"experiment": exp, "code_sha256": code_digest(ROOT), "n_boot": args.n_boot,
+        summary = {"experiment": exp, "code_sha256": code_digest(ROOT), "n_boot": args.n_boot, "open_scorer": args.open_scorer,
                    "computed": time.strftime("%Y-%m-%d %H:%M:%S"), "models": {}}
+        todo = []
         for model, directory in run_dirs(exp, args.model, args.datasets, not args.include_incomplete):
             meta = json.loads((directory / "meta.json").read_text())
             manifest = load_manifest(MANIFESTS / f"{meta['manifest']}.json")
             dataset = manifest["dataset"]
-            if exp == "sweep" and not args.skip_verify and (directory / "DONE").exists():
-                problems = verify_directory(directory, expected_rows(dataset, meta["n"]))
+            if not exp.startswith("e10") and not args.skip_verify and (directory / "DONE").exists():
+                problems = verify_directory(directory, expected_rows(dataset, meta["n"], meta.get("suite", "sweep")))
                 if problems:
                     print(f"!!! {model} | {dataset}: not summarised, {len(problems)} problem(s): {problems[:3]} (use --skip-verify to override)", flush=True)
                     continue
-            s = summarise_directory(directory, items_for(manifest), DATASET_TABLE[dataset][1], args.n_boot)
+            todo.append((model, directory, meta, manifest["name"], dataset))
+        jobs = [(d, manifest_name, dataset, args.n_boot) for _, d, _, manifest_name, dataset in todo]
+        if args.jobs > 1 and len(jobs) > 1:
+            with ProcessPoolExecutor(max_workers=min(args.jobs, len(jobs))) as pool:
+                results = list(pool.map(_summarise_job, jobs))  # map keeps the order, so the file does not depend on which worker finishes first
+        else:
+            results = map(_summarise_job, jobs)
+        for (model, directory, meta, _, dataset), s in zip(todo, results):
             s["run"] = {k: meta.get(k) for k in ("model_id", "revision", "device", "dtype", "attention", "manifest", "manifest_sha256",
-                                               "protocol_sha256", "code_sha256", "started")}
+                                               "protocol_sha256", "code_sha256", "started", "suite", "wording")}
             s["complete"] = (directory / "DONE").exists()
             summary["models"].setdefault(model, {})[dataset] = s
             if not args.quiet:
                 print(overview(model, dataset, s), flush=True)
         if summary["models"]:
-            name = f"{exp}_summary.json" if not args.model else f"{exp}_summary_{model_slug(args.model)}.json"
+            tag = "" if args.open_scorer == "strict" else f"_{args.open_scorer}"
+            name = f"{exp}_summary{tag}.json" if not args.model else f"{exp}_summary{tag}_{model_slug(args.model)}.json"
             (RESULTS / name).write_text(json.dumps(summary, indent=1))
             print(f"wrote {RESULTS / name}")
 
