@@ -52,6 +52,7 @@ def test_hub_sampling_defaults_are_reset(runner):
     meta = runner.meta(8)
     assert meta["truncation"] is False and meta["add_special_tokens"] is False and meta["padding_side"] == "left"
     assert meta["generation_config"]["repetition_penalty"] == 1.0
+    assert "gpu" in meta and meta["gpu"] is None  # recorded on every run; the name of the card on CUDA, none on CPU
 
 
 def test_greedy_is_argmax_of_raw_logits_and_label_logprobs_are_raw(runner):
@@ -140,3 +141,16 @@ def test_label_token_ids_skip_the_space_marker():
     ids = [label_token_ids(tok, d) for d in "1234"]
     assert all(len(i) == 1 for i in ids) and len({i[0] for i in ids}) == 4  # one distinct digit token each, not the shared "▁"
     assert all(label_token_ids(tok, lab) for lab in ("A", "Yes", "No", "CERTAIN", "NO IDEA"))
+
+
+def test_default_attention_is_eager_on_mps_and_for_models_that_cap_their_attention_scores(tmp_path):
+    from transformers import Gemma2Config, Qwen2Config
+
+    from probe_validity.generate import default_attention
+
+    gemma, qwen = tmp_path / "gemma", tmp_path / "qwen"
+    Gemma2Config(attn_logit_softcapping=50.0, final_logit_softcapping=30.0).save_pretrained(gemma)  # the SDPA path ignores the attention cap
+    Qwen2Config().save_pretrained(qwen)
+    assert default_attention(str(gemma), "cuda") == "eager" and default_attention(str(gemma), "cpu") == "eager"
+    assert default_attention(str(qwen), "cuda") == "sdpa" and default_attention(str(qwen), "cpu") == "sdpa"
+    assert default_attention("not-a-local-model", "mps") == "eager"  # on MPS the config is not even read

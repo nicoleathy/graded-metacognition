@@ -15,7 +15,7 @@ from pathlib import Path
 
 import torch
 import transformers
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 from .provenance import sha256_of  # noqa: F401  (re-exported for the experiment scripts)
 
@@ -52,14 +52,22 @@ def content_step(ids: list[int], is_blank, limit: int = 2) -> int:
     return min(limit - 1, max(len(ids) - 1, 0)) if ids and is_blank(ids[0]) else 0
 
 
+def default_attention(model_id: str, device: str, local_only: bool = True) -> str:
+    """The attention implementation a model runs with. Eager on Apple MPS, where SDPA returns NaN for left-padded rows; eager for a model that caps its attention
+    scores (Gemma-2's attn_logit_softcapping), because the SDPA path of transformers does not apply the cap; SDPA otherwise."""
+    if device == "mps":
+        return "eager"
+    softcap = getattr(AutoConfig.from_pretrained(model_id, local_files_only=local_only), "attn_logit_softcapping", None)
+    return "eager" if softcap else "sdpa"
+
+
 class Runner:
     def __init__(self, model_id: str, device: str | None = None, dtype: str = "bfloat16", local_only: bool = True,
                  attn: str | None = None, model=None, tok=None):
         self.model_id = model_id
         self.device = device or pick_device()
         self.dtype = dtype
-        # SDPA returns NaN for left-padded rows on Apple MPS (any dtype); eager attention does not.
-        self.attn = attn or ("eager" if self.device == "mps" else "sdpa")
+        self.attn = attn or default_attention(model_id, self.device, local_only)
         self.tok = tok or AutoTokenizer.from_pretrained(model_id, padding_side="left", local_files_only=local_only)
         self.tok.padding_side = "left"
         if self.tok.pad_token is None:
@@ -109,6 +117,7 @@ class Runner:
             "model_id": self.model_id,
             "revision": getattr(self.model.config, "_commit_hash", None),
             "device": self.device,
+            "gpu": torch.cuda.get_device_name(0) if self.device == "cuda" else None,  # the card matters for the numerics; a model keeps one card type for all its runs
             "dtype": self.dtype,
             "attention": self.attn,
             "torch": torch.__version__,
