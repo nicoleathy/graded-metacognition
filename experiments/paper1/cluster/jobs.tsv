@@ -1,0 +1,10 @@
+# One row per outstanding job. Columns (tab-separated): model, datasets, GPU memory needed in GB, status, note.
+# status "ready": run it. "ready_gated": run it, but its weights are gated: the owner has accepted the licence and downloads them to HF_HOME with their own token first (prefetch.py never touches them).
+# "done": finished and ingested, do not rerun. "blocked": do not run on the cluster (see the note). Source of truth for what each model runs: experiments/paper1/panel.py.
+# Qwen/Qwen3-8B finished on the Mac (a run directory is never continued on another platform). Models finished elsewhere are not listed.
+Qwen/Qwen3-1.7B	mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions	16	done	finished on the cluster and ingested on the Mac (28 October)
+Qwen/Qwen2.5-14B-Instruct	mmlu supergpqa_mfg	40	done	validity-only run (MMLU and the SuperGPQA slice) finished on the cluster and ingested on the Mac (28 October)
+meta-llama/Llama-3.2-1B-Instruct	mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions	16	ready_gated	gated: the owner downloads the weights with their own Hugging Face token before the job (see CLUSTER.md)
+meta-llama/Llama-3.2-3B-Instruct	mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions	16	ready_gated	gated: same
+google/gemma-2-2b-it	mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions	16	ready_gated	gated: same. Gemma-2 caps its attention scores (attn_logit_softcapping 50), which the sdpa path of the pinned transformers ignores: the runner now picks eager attention for it (probe_validity/generate.py, default_attention), also on CUDA; the run records attention=eager
+google/gemma-2-9b-it	mmlu triviaqa mmlu_pro_eng supergpqa_mfg webquestions	40	ready_gated	gated: same, and eager attention as for gemma-2-2b-it. Weights are 18.5 GB in bfloat16; with the key-value cache and activations of a batch of 16 long prompts (MMLU-Pro, SuperGPQA) it does not fit a 24 GB card, so ask for 40 GB or more (A40, A100, L40S, H100, H200). Do not lower the batch size

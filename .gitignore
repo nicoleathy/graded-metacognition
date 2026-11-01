@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 *.out
 *.tsv
+!experiments/paper1/cluster/jobs.tsv
 eval_outputs/
 transfer_results/
 wandb/
