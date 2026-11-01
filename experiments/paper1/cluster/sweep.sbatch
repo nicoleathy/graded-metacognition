@@ -10,7 +10,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --output=p1-sweep-%x-%j.out
 set -euo pipefail
-MODEL="${1:-${MODEL:-}}"; DATASETS="${2:-${DATASETS:-}}"      # arguments (preferred) or environment variables
+MODEL="${1:-${MODEL:-}}"; DATASETS="${2:-${DATASETS:-}}"; OUTDIR="${3:-${OUTDIR:-sweep}}"      # arguments (preferred) or environment variables
 : "${MODEL:?give the model id as the first argument}"
 : "${DATASETS:?give the datasets as the second argument, quoted}"
 cd "${SLURM_SUBMIT_DIR:?submit from the repository root}"
@@ -19,4 +19,4 @@ export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 export HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1            # weights and datasets were fetched beforehand by prefetch.py
 export HF_HUB_DISABLE_IMPLICIT_TOKEN=1                   # no token is ever used by a job
 export PYTHONUNBUFFERED=1
-exec bash experiments/paper1/cluster/run_job.sh "$MODEL" "$DATASETS"
+exec bash experiments/paper1/cluster/run_job.sh "$MODEL" "$DATASETS" "$OUTDIR"
