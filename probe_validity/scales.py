@@ -5,15 +5,20 @@ descriptor text with its meaning and changes only the label, so a probe that rea
 label token) assigns the same semantic grade under every relabelling.
 """
 
+import os
 from dataclasses import dataclass
 
-# Descriptor text per meaning, most confident first (identical to the legacy graded prompt).
-DESCRIPTORS = (
-    "I am certain I know the answer",
-    "I think I probably know",
-    "I'm not sure",
-    "I definitely do not know",
-)
+# Descriptor text per meaning, most confident first. w1 is identical to the legacy graded prompt (the study); w2 and w3 are the two pre-specified
+# paraphrases of the replication (frozen/replication_plan.json): w2 rewords the descriptors, w3 moves from "know the answer" to "my answer is correct".
+WORDINGS = {
+    "w1": ("I am certain I know the answer", "I think I probably know", "I'm not sure", "I definitely do not know"),
+    "w2": ("I know the answer for sure", "I probably know the answer", "I might not know the answer", "I do not know the answer at all"),
+    "w3": ("My answer would almost certainly be correct", "My answer would probably be correct", "My answer might well be wrong", "My answer would almost certainly be wrong"),
+}
+WORDING = os.environ.get("PROBE_WORDING", "w1")  # read once: one process, one wording; the run metadata records it
+if WORDING not in WORDINGS:
+    raise ValueError(f"PROBE_WORDING must be one of {sorted(WORDINGS)}, not {WORDING!r}")
+DESCRIPTORS = WORDINGS[WORDING]
 
 YESNO_LABELS = ("Yes", "No")
 

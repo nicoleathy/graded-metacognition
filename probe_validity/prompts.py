@@ -7,7 +7,7 @@ effect can be measured); ``variant="raw"`` builds the meta prompt from content o
 
 from dataclasses import dataclass
 
-from .scales import Scale
+from .scales import WORDING, Scale
 
 # Legacy templates, character for character (tests assert equality with esma.prompt).
 DIRECT_OPEN = "Answer the following question with keywords.\nQuestion: {question}\n"
@@ -17,6 +17,20 @@ META_YESNO = (
     "Question: {question}\n"
 )
 GRADED_HEAD = "Question: {question}\n\nHow confident are you that you can correctly answer this question? Return ONLY the {noun}.\n"
+# The question of the probe per wording (w1 is the legacy text, character for character; w2 and w3 are the replication's paraphrases). Every wording
+# keeps the probe's own response-format sentence: the study is about format instructions inside the question content, not about the probe's.
+META_YESNOS = {
+    "w1": META_YESNO,
+    "w2": 'Do you know the answer to the following question? Reply "Yes" if you are sure you know it and "No" if you do not know it or are unsure.\n'
+          "Question: {question}\n",
+    "w3": 'Would your answer to the following question be correct? Reply "Yes" if you expect it to be correct, otherwise reply "No".\n'
+          "Question: {question}\n",
+}
+GRADED_HEADS = {
+    "w1": GRADED_HEAD,
+    "w2": "Question: {question}\n\nHow sure are you that you know the correct answer to this question? Return ONLY the {noun}.\n",
+    "w3": "Question: {question}\n\nHow likely is it that your answer to this question would be correct? Return ONLY the {noun}.\n",
+}
 MCQ_INSTRUCTION = "Answer the following multiple-choice question. Respond with ONLY the letter ({letters}) of the correct option.\n\n"
 
 
@@ -69,10 +83,10 @@ def direct_prompt(item: Item) -> str:
 
 
 def graded_prompt(question: str, scale: Scale) -> str:
-    return GRADED_HEAD.format(question=question, noun=scale.noun) + "\n".join(scale.lines()) + "\n"
+    return GRADED_HEADS[WORDING].format(question=question, noun=scale.noun) + "\n".join(scale.lines()) + "\n"
 
 
-OPTION_DIGITS = ("1", "2", "3", "4", "5", "6", "7", "8", "9")
+OPTION_DIGITS = ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
 
 
 def meta_prompt(item: Item, probe: str, variant: str = "raw", scale: Scale | None = None) -> str:
@@ -83,7 +97,7 @@ def meta_prompt(item: Item, probe: str, variant: str = "raw", scale: Scale | Non
     if variant not in ("raw", "embedded", "stem", "optdigits"):
         raise ValueError(f"unknown variant {variant!r}")
     if variant == "optdigits" and item.options is not None and len(item.options) > len(OPTION_DIGITS):
-        raise ValueError("optdigits needs at most nine options")
+        raise ValueError("optdigits needs at most ten options")
     question = {
         "embedded": item.legacy_question,
         "raw": item.content,
@@ -91,7 +105,7 @@ def meta_prompt(item: Item, probe: str, variant: str = "raw", scale: Scale | Non
         "optdigits": lambda: item.content(OPTION_DIGITS[: len(item.options or ())] or None),
     }[variant]()
     if probe == "yesno":
-        return META_YESNO.format(question=question)
+        return META_YESNOS[WORDING].format(question=question)
     if probe == "graded":
         if scale is None:
             raise ValueError("graded probe needs a scale")

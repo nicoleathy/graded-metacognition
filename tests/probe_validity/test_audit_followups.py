@@ -222,7 +222,7 @@ def sweep(tmp_path, monkeypatch):
     monkeypatch.setattr(run_sweep, "load_items", lambda name, revision=None: (items, {"revision": "rev"}))
     monkeypatch.setattr(run_sweep, "load_manifest", lambda path: {"name": "toy", "sha256": "m", "source": {"revision": "rev"}})
     monkeypatch.setattr(run_sweep, "select", lambda items, manifest: items)
-    monkeypatch.setattr(run_sweep, "conditions_for", lambda dataset: conds)
+    monkeypatch.setattr(run_sweep, "conditions_for", lambda dataset, suite="sweep": conds)
     monkeypatch.setattr(run_sweep, "DATASET_TABLE", {"toy": ("toy_manifest", (), False)})
     monkeypatch.setattr(run_sweep, "protocol_record", lambda: {"sha256": "p"})
     monkeypatch.setattr(run_sweep, "RUNS", tmp_path)

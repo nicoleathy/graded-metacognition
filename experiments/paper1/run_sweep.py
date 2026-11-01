@@ -14,17 +14,19 @@ import json
 import time
 
 from common import MANIFESTS, ROOT, RUNS, model_slug
-from protocol import DATASET_TABLE, SAMPLING, conditions_for, protocol_record
+from protocol import DATASET_TABLE, REPLICATION_DATASETS, SAMPLING, SUITES, conditions_for, protocol_record, replication_record
 
 from probe_validity.generate import Runner, read_jsonl, run_condition
 from probe_validity.loaders import load_items, load_manifest, select
 from probe_validity.prompts import assert_no_format_instruction
 from probe_validity.provenance import code_digest, git_state, sha256_of
+from probe_validity.scales import WORDING
 
 # Settings that must not change between invocations writing into one run directory: resuming on top of rows made under another
 # model revision, decoding configuration, template or software stack would mix runs silently.
 COMPARED = ("model_id", "revision", "device", "dtype", "attention", "torch", "transformers", "chat_template_sha256", "padding_side",
-            "generation_config", "generation_config_sampled", "manifest_sha256", "batch_size", "n", "limit")  # batch size fixes the batch composition
+            "generation_config", "generation_config_sampled", "manifest_sha256", "batch_size", "n", "limit", "suite", "wording")  # batch size fixes the batch composition
+DEFAULTS = {"suite": "sweep", "wording": "w1"}  # runs written before these fields existed are the study's: sweep suite, the legacy wording
 BOOKKEEPING = {"meta_history.jsonl", "conditions.jsonl"}  # not condition files: a directory holding only these has no rows yet
 
 
@@ -45,7 +47,7 @@ def _norm(value):
 
 def config_changes(old: dict, new: dict) -> list[str]:
     """Names of the compared settings whose values differ between two invocation records."""
-    return [k for k in COMPARED if _norm(old.get(k)) != _norm(new.get(k))]
+    return [k for k in COMPARED if _norm(old.get(k, DEFAULTS.get(k))) != _norm(new.get(k, DEFAULTS.get(k)))]
 
 
 def rows_present(path, name: str) -> int:
@@ -60,7 +62,8 @@ def file_sha256(path) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
-    ap.add_argument("--datasets", nargs="+", default=list(DATASET_TABLE), choices=list(DATASET_TABLE))
+    ap.add_argument("--suite", choices=SUITES, default="sweep", help="sweep: the study; replication: the pre-specified replication (use --out replication_<wording>)")
+    ap.add_argument("--datasets", nargs="+", choices=list(DATASET_TABLE), help="default: every dataset of the suite")
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--only", nargs="*", help="run only these conditions")
     ap.add_argument("--out", default="sweep")
@@ -68,9 +71,14 @@ def main() -> None:
     ap.add_argument("--allow-config-change", action="store_true", help="resume although the settings differ from the invocation that wrote the rows")
     args = ap.parse_args()
 
-    protocol = protocol_record()
+    protocol = protocol_record() if args.suite == "sweep" else replication_record()
+    if args.suite == "sweep" and WORDING != "w1":
+        raise SystemExit(f"the sweep runs under the legacy wording w1, not {WORDING}; unset PROBE_WORDING")
+    if args.suite == "replication" and not args.out.startswith("replication"):
+        raise SystemExit("a replication run goes to its own directory: --out replication_<wording>, never runs/sweep")
+    datasets = args.datasets or (list(DATASET_TABLE) if args.suite == "sweep" else list(REPLICATION_DATASETS))
     runner = Runner(args.model)
-    for dataset in args.datasets:
+    for dataset in datasets:
         manifest = load_manifest(MANIFESTS / f"{DATASET_TABLE[dataset][0]}.json")
         items, _ = load_items(dataset, manifest["source"]["revision"])  # the revision the manifest recorded, not the current one
         source = manifest["source"]
@@ -85,7 +93,7 @@ def main() -> None:
         meta = runner.meta(32)
         meta["generation_config_sampled"] = runner.effective_config(16, SAMPLING)  # used by the letters_sampled* conditions
         meta.update(experiment=args.out, dataset=dataset, n=len(items), limit=args.limit, manifest=manifest["name"], manifest_sha256=manifest["sha256"],
-                    source=source, protocol_sha256=protocol["sha256"], batch_size=args.batch_size, git=git_state(ROOT), code_sha256=code_digest(ROOT),
+                    source=source, protocol_sha256=protocol["sha256"], suite=args.suite, wording=WORDING, batch_size=args.batch_size, git=git_state(ROOT), code_sha256=code_digest(ROOT),
                     started=time.strftime("%Y-%m-%d %H:%M:%S"), only=args.only)
         meta["invocation"] = sha256_of(meta)[:16]
         meta_path = out_dir / "meta.json"
@@ -101,7 +109,7 @@ def main() -> None:
                 (out_dir / "DONE").rename(out_dir / f"DONE.superseded.{time.strftime('%Y%m%d-%H%M%S')}")
         meta_path.write_text(json.dumps(meta, indent=1))
         incomplete, recorded = [], last_records(out_dir)
-        for cond in conditions_for(dataset):
+        for cond in conditions_for(dataset, args.suite):
             sub = items[: cond.subset] if cond.subset else items
             path = out_dir / f"{cond.name}.jsonl"
             if args.only and cond.name not in args.only:

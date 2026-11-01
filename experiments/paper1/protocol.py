@@ -45,23 +45,40 @@ def _meta(scale_name: str, kind: str, variant: str):
     return lambda it: meta_prompt(it, kind, variant, scale)
 
 
-def conditions_for(dataset: str) -> list[Condition]:
+SUITES = ("sweep", "replication")
+# The replication (frozen/replication_plan.json) repeats the study's interventions where they were not run: the embedded instruction, the stem-only
+# prompt, the answer-label control and the label x order design on all three multiple-choice sets (the sweep has them on MMLU only), under three
+# wordings of the probe (PROBE_WORDING). It has no direct_legacy prompt, no permuted scale and no sampled decodes (those serve the screen only).
+REPLICATION_DATASETS = ("mmlu", "mmlu_pro_eng", "supergpqa_mfg")
+
+
+def conditions_for(dataset: str, suite: str = "sweep") -> list[Condition]:
+    if suite not in SUITES:
+        raise ValueError(f"unknown suite {suite!r}")
     manifest, option_labels, embedded = DATASET_TABLE[dataset]
+    replication = suite == "replication"
+    if replication:
+        if dataset not in REPLICATION_DATASETS:
+            raise ValueError(f"the replication covers {REPLICATION_DATASETS}, not {dataset!r}")
+        embedded = True
     conds = [Condition("direct_clean", direct_prompt, option_labels)]
-    if embedded:
+    if embedded and not replication:
         conds.append(Condition("direct_legacy", lambda it: DIRECT_OPEN.format(question=it.legacy_question()), option_labels))
     variants = ("raw", "embedded", "stem") if embedded else ("raw",)  # stem: the question alone, no options shown
     for probe, (scale, kind) in PROBES.items():
         for variant in variants:
             conds.append(Condition(f"{probe}_{variant}", _meta(probe, kind, variant), scale.labels))
     for scale in (LETTERS_REVERSED, LETTERS_PERM, LETTERS_FLIP_ORDER, LETTERS_FLIP_LABELS):
+        if replication and scale is LETTERS_PERM:
+            continue
         conds.append(Condition(f"{scale.name}_raw", _meta(scale.name, "graded", "raw"), scale.labels))
-    if embedded:  # MMLU: the answer-label control, a 2 x 2 with letters_raw and digits_raw (options labelled by letters)
+    if embedded:  # the answer-label control, a 2 x 2 with letters_raw and digits_raw (options labelled by digits)
         conds.append(Condition("letters_optdigits", _meta("letters", "graded", "optdigits"), LETTERS.labels))
         conds.append(Condition("digits_optdigits", _meta("digits", "graded", "optdigits"), PROBE_SCALES["digits"].labels))
-    for draw in range(DRAWS):
-        conds.append(Condition(f"letters_sampled{draw}", _meta("letters", "graded", "raw"), LETTERS.labels, 16,
-                               SAMPLING, seed=1000 * (draw + 1), subset=SUBSET))
+    if not replication:
+        for draw in range(DRAWS):
+            conds.append(Condition(f"letters_sampled{draw}", _meta("letters", "graded", "raw"), LETTERS.labels, 16,
+                                   SAMPLING, seed=1000 * (draw + 1), subset=SUBSET))
     return conds
 
 
@@ -71,9 +88,9 @@ REFERENCE_ITEMS = {  # fixed items whose rendered prompts are hashed, so a templ
 }
 
 
-def prompt_digest(dataset: str) -> dict:
+def prompt_digest(dataset: str, suite: str = "sweep") -> dict:
     item = REFERENCE_ITEMS[bool(DATASET_TABLE[dataset][1])]
-    return {c.name: sha256_of(c.build(item)) for c in conditions_for(dataset)}
+    return {c.name: sha256_of(c.build(item)) for c in conditions_for(dataset, suite)}
 
 
 VERSION = "2.1"
@@ -91,6 +108,27 @@ def protocol_record() -> dict:
             "conditions": [{"name": c.name, "max_new_tokens": c.max_new_tokens, "sampling": c.sampling, "seed": c.seed,
                             "subset": c.subset, "labels": c.labels} for c in conditions_for(dataset)],
             "prompt_sha256_on_reference_item": prompt_digest(dataset),
+        }
+    record["sha256"] = sha256_of(record)
+    return record
+
+
+REPLICATION_VERSION = "R1.0"
+
+
+def replication_record() -> dict:
+    """Everything that defines one wording of the replication, hashed: the wording itself, the conditions per dataset and the prompts on a reference item.
+    The sweep's record (protocol_record) is not touched: the frozen protocol hash stays valid."""
+    from probe_validity.scales import WORDING
+
+    record = {"version": REPLICATION_VERSION, "suite": "replication", "wording": WORDING, "scales": {
+        name: {"labels": s.labels, "descriptors": s.descriptors, "lines": s.lines()} for name, s in SCALES.items()}, "datasets": {}}
+    for dataset in REPLICATION_DATASETS:
+        manifest, labels, _ = DATASET_TABLE[dataset]
+        record["datasets"][dataset] = {
+            "manifest": manifest, "option_labels": labels,
+            "conditions": [{"name": c.name, "max_new_tokens": c.max_new_tokens, "labels": c.labels} for c in conditions_for(dataset, "replication")],
+            "prompt_sha256_on_reference_item": prompt_digest(dataset, "replication"),
         }
     record["sha256"] = sha256_of(record)
     return record

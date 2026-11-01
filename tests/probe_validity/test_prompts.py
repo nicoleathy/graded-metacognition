@@ -168,5 +168,32 @@ def test_answer_label_control_relabels_only_the_options():
     with pytest.raises(ValueError):
         item.content(("1", "2"))
     ten = Item(qid="q", stem="s", options=tuple("abcdefghij"), gold="A")
+    assert "\n10) j" in meta_prompt(ten, "yesno", "optdigits")  # the technical sets have up to ten options: labels 1) to 10)
+    eleven = Item(qid="q", stem="s", options=tuple("abcdefghijk"), gold="A")
     with pytest.raises(ValueError):
-        meta_prompt(ten, "yesno", "optdigits")
+        meta_prompt(eleven, "yesno", "optdigits")
+
+
+def test_the_wording_changes_the_probe_text_and_nothing_else_and_defaults_to_the_legacy_text():
+    """PROBE_WORDING is read once at import, so each wording is checked in its own process: w1 is the legacy prompt, w2 and w3 differ in the
+    question of the probe and in the descriptors, and the four meanings, the labels and the response-format sentence stay."""
+    import json
+    import os
+    import subprocess
+    import sys
+
+    code = ("import json; from probe_validity.prompts import Item, meta_prompt; from probe_validity.scales import LETTERS, WORDING; "
+            "it = Item(qid='q', stem='S', options=('a', 'b', 'c', 'd'), gold='A'); "
+            "print(json.dumps({'w': WORDING, 'yn': meta_prompt(it, 'yesno', 'raw'), 'gr': meta_prompt(it, 'graded', 'raw', LETTERS), 'lines': LETTERS.lines()}))")
+    out = {}
+    for w in ("w1", "w2", "w3"):
+        env = {**os.environ, "PROBE_WORDING": w}
+        out[w] = json.loads(subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True, env=env).stdout)
+    legacy = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True, env={k: v for k, v in os.environ.items() if k != "PROBE_WORDING"})
+    assert json.loads(legacy.stdout)["w"] == "w1"  # no variable: the study's wording
+    assert len({out[w]["yn"] for w in out}) == 3 and len({out[w]["gr"] for w in out}) == 3
+    assert "I am certain I know the answer" in out["w1"]["gr"] and "I know the answer for sure" in out["w2"]["gr"] and "almost certainly be correct" in out["w3"]["gr"]
+    for w in out:  # four lines, the same labels in the same order, the probe's own response-format sentence kept
+        assert [ln.split(")")[0] for ln in out[w]["lines"]] == ["A", "B", "C", "D"] and "Return ONLY the letter." in out[w]["gr"]
+    bad = subprocess.run([sys.executable, "-c", "import probe_validity.scales"], capture_output=True, text=True, env={**os.environ, "PROBE_WORDING": "w9"})
+    assert bad.returncode != 0 and "PROBE_WORDING" in bad.stderr  # an unknown wording is an error, never a silent default

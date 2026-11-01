@@ -2,7 +2,10 @@
 SHA-256 recorded when it was completed. Returns the problems instead of raising, so a caller can report them all.
 
     python experiments/paper1/verify_runs.py            # every finished directory under runs/sweep
+    python experiments/paper1/verify_runs.py --exp replication_w2
 """
+
+import argparse
 
 import json
 import sys
@@ -12,9 +15,9 @@ from protocol import conditions_for
 from run_sweep import file_sha256, rows_present
 
 
-def expected_rows(dataset: str, n_items: int) -> dict[str, int]:
+def expected_rows(dataset: str, n_items: int, suite: str = "sweep") -> dict[str, int]:
     """Rows each condition must have for a dataset of n_items items."""
-    return {c.name: min(c.subset, n_items) if c.subset else n_items for c in conditions_for(dataset)}
+    return {c.name: min(c.subset, n_items) if c.subset else n_items for c in conditions_for(dataset, suite)}
 
 
 def verify_directory(directory, expected: dict[str, int]) -> list[str]:
@@ -44,11 +47,14 @@ def verify_directory(directory, expected: dict[str, int]) -> list[str]:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--exp", default="sweep", help="runs/<exp>: sweep or replication_<wording>")
+    exp = ap.parse_args().exp
     bad = 0
-    for model_dir in sorted(p for p in (RUNS / "sweep").iterdir() if p.is_dir()):
+    for model_dir in sorted(p for p in (RUNS / exp).iterdir() if p.is_dir()):
         for d in sorted(p for p in model_dir.iterdir() if p.is_dir() and (p / "DONE").exists()):
             meta = json.loads((d / "meta.json").read_text())
-            problems = verify_directory(d, expected_rows(meta["dataset"], meta["n"]))
+            problems = verify_directory(d, expected_rows(meta["dataset"], meta["n"], meta.get("suite", "sweep")))
             print(f"{'ok ' if not problems else 'BAD'} {d.relative_to(RUNS)}" + ("" if not problems else f": {problems[:3]}"))
             bad += bool(problems)
     return 1 if bad else 0
