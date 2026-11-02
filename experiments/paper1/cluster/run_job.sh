@@ -24,8 +24,10 @@ print("python", platform.python_version(), "| torch", torch.__version__, "| tran
       "| cuda", torch.cuda.is_available(), (torch.cuda.get_device_name(0) if torch.cuda.is_available() else "NO GPU"))
 assert torch.cuda.is_available(), "no GPU visible: a CPU run would be a different platform and far too slow"
 PY
-"$PY" -m pytest tests/probe_validity -q -x                     # the sweep must not start if anything fails here
-"$PY" experiments/paper1/run_sweep.py --model "$MODEL" --datasets mmlu --limit 16 --suite "$SUITE" --out "${SUITE}_smoke_cluster"   # 16 MMLU items, every condition, scratch directory
+env -u PROBE_WORDING "$PY" -m pytest tests/probe_validity -q -x   # the sweep must not start if anything fails here; the tests pin the legacy wording and run the others in their own processes
+SMOKE="${SUITE}_smoke_cluster"
+if [ "$SUITE" = "replication" ]; then SMOKE="${SMOKE}_${PROBE_WORDING}"; fi   # one scratch directory per wording: a directory refuses rows written under another wording
+"$PY" experiments/paper1/run_sweep.py --model "$MODEL" --datasets mmlu --limit 16 --suite "$SUITE" --out "$SMOKE"   # 16 MMLU items, every condition, scratch directory
 # The sweep itself: resumable, refuses to continue a directory written under other settings or on another platform. Never pass --allow-config-change.
 "$PY" experiments/paper1/run_sweep.py --model "$MODEL" --datasets $DATASETS --batch-size 16 --suite "$SUITE" --out "$OUTDIR" >> "experiments/paper1/runs/logs/${OUTDIR}_${slug}.log" 2>&1
 if [ "$OUTDIR" = "sweep" ]; then "$PY" experiments/paper1/verify_runs.py
